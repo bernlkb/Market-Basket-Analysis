@@ -1,0 +1,273 @@
+---
+title: "Analisis Bakul Pembeilan"
+author: "Nurul Irdina Zahirah Binti Abd Rahim"
+output: html_document
+date: "2023-10-13"
+---
+## 1. Pemuatan Data
+1.1 Memuat naik data yang diperoleh daripada laman web Kaggle ke dalam R dan namakan data tersebut sebagai "hunter"
+```{r}
+load("/Users/zahirahrahim/Documents/FYP/FYP_code/Data/FYP_Zahirah.RData")
+hunter<- dat
+head(hunter)
+```
+## 2. Pemuatan "library" yang akan digunakan
+```{r}
+library(arules)
+library(arulesViz)
+library(tidyverse)
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+```
+
+## 3. Pembersihan data
+3.1 Pembuangan transaksi yang hanya mempunyai satu item sahaja [To delete transactions with only one item purchased]
+```{r}
+hunter_c <- hunter[hunter$order_id %in% names(which(table(hunter$order_id) > 1)), -c(3,6,7,8,10)]
+```
+3.2 Pembuangan item yang sama di dalam setiap data transaksi [To remove duplicate items in a transaction]
+```{r}
+hunter_c <- hunter_c[!duplicated(hunter_c), ]
+```
+3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
+```{r}
+hunter_c <- hunter_c[!(hunter_c$product_name=='missing'),]
+hunter_c[is.na(hunter_c)]<- 0
+head(hunter_c)
+```
+## 4. Penyediaan Data
+4.1 Penyediaan data bagi Analisis Penerokaan Data
+```{r}
+sapply(hunter_c, function(x) length(unique(x)))
+hunter_EDA<- hunter_c %>% 
+  group_by(order_id, order_dow, order_hour_of_day) %>% 
+  summarise(item = paste(product_name, collapse = ","))
+
+head(hunter_EDA)
+```
+4.2 Penyediaan data bagi analisis bakul pembelian
+```{r}
+# Tukarkan data kepada bentuk transaksi [Convert data into transactions]
+## Pecahkan data mengikut order ID dan nama produk [Split the data]
+hunter_gr <- split(hunter_c$product_name, hunter_c$order_id)
+head(hunter_gr)
+## Tukarkan data kepada bentuk transaksi [Convert the data into transactions using the arules package]
+hunter_trans <- as(hunter_gr, "transactions")
+inspect(head(hunter_trans, 5))
+```
+
+## 5. Analisis Penerokaan Data [Exploratory Data Analysis, EDA]
+5.1 Jumlah transaksi pelanggan mengikut hari [Total number of transactions per day]
+```{r}
+hunter_day<- table(hunter_EDA$order_dow)
+days <- paste(c("Isnin", "Selasa", "Rabu","Khamis", "Jumaat", "Sabtu", "Ahad"), "  | ", (round((hunter_day/190134)*100,1)), "%", sep="")
+pie(hunter_day, labels = days, main =" Jumlah transaksi pelanggan mengikut hari", col = rainbow(length(hunter_day)))
+```
+
+```{r}
+barplot(hunter_day,
+main = "Jumlah transaksi pelanggan mengikut hari",
+xlab = "Hari",
+ylab = "Bilangan Transaksi",
+names.arg = c("Isnin", "Selasa", "Rabu","Khamis", "Jumaat", "Sabtu", "Ahad"),
+col = rainbow(length(hunter_day)),
+horiz = FALSE)
+```
+
+5.2 Jumlah transaksi pelanggan mengikut masa [Total number of transactions per time]
+```{r}
+hunter_EDAt<- hunter_EDA[,c(1,3)]
+hunter_EDAt$Masa <- cut(hunter_EDAt$order_hour_of_day, breaks = c(-Inf,4,11,14,19,Inf), 
+                  labels = c("Malam","Pagi","Tengahhari","Petang","Malam"))
+head(hunter_EDAt)
+hunter_time<-table(hunter_EDAt$Masa)
+time <- paste(c("Malam", "Pagi", "Tengahhari","Petang"), "  | ", (round((hunter_time/190134)*100,1)), "%", sep="")
+pie(hunter_time, labels=time, main ="Jumlah transaksi pelanggan mengikut masa", col = rainbow(length(hunter_time)))
+```
+
+```{r}
+barplot(table(hunter_EDAt$order_hour_of_day),
+main = "Jumlah transaksi pelanggan mengikut masa",
+xlab = "Masa",
+ylab = "Bilangan Transaksi",
+names.arg = names(hunter_EDAt$order_hour_of_day),
+col = rainbow(length(table(hunter_EDAt$order_hour_of_day))),
+horiz = FALSE)
+```
+
+```{r}
+hunter_EDAt %>%
+  # Group data by time
+  group_by(Masa) %>% 
+  # Calculate the count of each group and drop the grouping
+  summarize(count = n(), .groups = "drop") %>% 
+  # Sort data by count in descending order
+  arrange(desc(count)) %>% 
+  # Create a bar plot
+  ggplot(aes(
+    # Reorder Description based on count for plotting
+    x = reorder(Masa, count),
+    y = count
+  )) +
+  # Add bars with 'identity' stat and  fill color
+  geom_bar(stat = "identity", fill = rainbow(length(hunter_time)), color ="black") +
+  # Add title and remove x axis label
+  labs(title = "Jumlah transaksi pelanggan mengikut masa", x = "", y = "Bilangan Pembelian") +
+  # Flip coordinates to get a horizontal bar plot
+  coord_flip()
+```
+
+5.3 Jumlah pembelian mengikut jabatan [Total number of purchases for each Departments]
+```{r}
+hunter_dep <- table(hunter_c$department)
+hunter_c %>%
+  # Group data by department
+  group_by(department) %>% 
+  # Calculate the count of each group and drop the grouping
+  summarize(count = n(), .groups = "drop") %>% 
+  # Sort data by count in descending order
+  arrange(desc(count)) %>% 
+  # Create a bar plot
+  ggplot(aes(
+    # Reorder Description based on count for plotting
+    x = reorder(department, count),
+    y = count
+  )) +
+  # Add bars with 'identity' stat and  fill color
+  geom_bar(stat = "identity", fill = rainbow(length(hunter_dep)), color ="black") +
+  # Add title and remove x axis label
+  labs(title = "Jumlah pembelian mengikut jabatan", x = "", y = "Bilangan Pembelian") +
+  # Flip coordinates to get a horizontal bar plot
+  coord_flip()
+```
+
+5.4 10 jabatan yang kerap dibeli [Top 10 most popular department]
+```{r}
+hunter_dep2 <- hunter_c %>%
+  # Group data by department
+  group_by(department) %>% 
+  # Calculate the count of each group and drop the grouping
+  summarize(count = n(), .groups = "drop") %>% 
+  # Sort data by count in descending order
+  arrange(desc(count)) %>% 
+  # Select the top 10 items with the highest count
+  slice_max(order_by = count, n = 10)
+hunter_dep2 %>% 
+  # Create a bar plot
+  ggplot(aes(
+    # Reorder Description based on count for plotting
+    x = reorder(department, count),
+    y = count
+  )) +
+  # Add bars with 'identity' stat and  fill color
+  geom_bar(stat = "identity", fill = rainbow(length(hunter_dep2$department)), color ="black") +
+  # Add title and remove x axis label
+  labs(title = "10 jabatan yang kerap dibeli", x = "", y = "Bilangan Pembelian") +
+  # Flip coordinates to get a horizontal bar plot
+  coord_flip()
+```
+
+5.5 10 item yang kerap diulang pembelian oleh pelanggan [Top 10 Most Reordered Product]
+```{r}
+hunter_reordered <-hunter_c %>%
+  filter(reordered == 1) %>%
+  # Group data by product name
+  group_by(product_name) %>% 
+  # Calculate the count of each group and drop the grouping
+  summarize(count = n(), .groups = "drop") %>% 
+  # Sort data by count in descending order
+  arrange(desc(count)) %>% 
+  # Select the top 10 items with the highest count
+  slice_max(order_by = count, n = 10)
+  # Create a bar plot
+hunter_reordered %>% ggplot(aes(
+    # Reorder Description based on count for plotting
+    x = reorder(product_name, count),
+    y = count
+  )) +
+  # Add bars with 'identity' stat and  fill color
+  geom_bar(stat = "identity", fill = rainbow(length(hunter_reordered$product_name)), color ="black") +
+  # Add title and remove x axis label
+  labs(title = "10 item yang kerap diulang pembelian oleh pelanggan", x = "", y = "Bilangan Pembelian") +
+  # Flip coordinates to get a horizontal bar plot
+  coord_flip()
+```
+
+5.6 10 item yang kerap dibeli [Top 10 Most Popular Product]
+```{r}
+hunter_item<-hunter_c %>%
+  # Group data by product name
+  group_by(product_name) %>% 
+  # Calculate the count of each group and drop the grouping
+  summarize(count = n(), .groups = "drop") %>% 
+  # Sort data by count in descending order
+  arrange(desc(count)) %>% 
+  # Select the top 10 items with the highest count
+  slice_max(order_by = count, n = 10) 
+  # Create a bar plot
+hunter_item %>% ggplot(aes(
+    # Reorder Description based on count for plotting
+    x = reorder(product_name, count),
+    y = count
+  )) +
+  # Add bars with 'identity' stat and  fill color
+  geom_bar(stat = "identity", fill = rainbow(length(hunter_item$product_name)), color ="black") +
+  # Add title and remove x axis label
+  labs(title = "Top 10 Most Popular Product", x = "", y = "Total purchases") +
+  # Flip coordinates to get a horizontal bar plot
+  coord_flip()
+```
+
+## 6. Analisis Bakul Pembeilan
+
+6.1 Algoritma Apriori 
+```{r}
+start_A <- Sys.time() #Untuk mengukur masa pelaksanaan algoritma
+# To measure running time of Apriori Algorithm in R
+
+hunter_apriori<- apriori(hunter_trans, parameter = list(supp = 0.1, conf = 0.7, minlen = 2))
+hunter_ap<- sort(hunter_apriori, by="confidence", decreasing = T)
+
+end_A <- Sys.time() # 
+end_A - start_A # 
+
+arules::inspect(hunter_apriori)
+arules::inspect(hunter_ap)
+
+start_A2 <- Sys.time() #Untuk mengukur masa pelaksanaan algoritma
+# To measure running time of Apriori Algorithm in R
+
+hunter_apriori2<- apriori(hunter_trans, parameter = list(supp = 0.05, conf = 0.5, minlen = 2))
+hunter_ap2<- sort(hunter_apriori2, by="confidence", decreasing = T)
+
+end_A2 <- Sys.time() # 
+end_A2 - start_A2 # 
+
+arules::inspect(hunter_apriori2)
+arules::inspect(hunter_ap2)
+```
+6.2 Algoritma ECLAT
+```{r}
+start_E <- Sys.time() # To measure running time of ECLAT Algorithm in R
+
+hunter_ECLAT<- eclat(data = hunter_trans, parameter = list(supp = 0.1, minlen = 3))
+hunter_E<- sort(hunter_ECLAT, by="support", decreasing = T)
+end_E <- Sys.time() #
+end_E - start_E #
+
+arules::inspect(hunter_ECLAT)
+arules::inspect(hunter_E)
+
+start_E2 <- Sys.time() # To measure running time of ECLAT Algorithm in R
+
+hunter_ECLAT2<- eclat(data = hunter_trans, parameter = list(supp = 0.05, minlen = 3))
+hunter_E2<- sort(hunter_ECLAT2, by="support", decreasing = T)
+end_E2 <- Sys.time() #
+end_E2 - start_E #
+
+arules::inspect(hunter_ECLAT2)
+arules::inspect(hunter_E2)
+```
+
+

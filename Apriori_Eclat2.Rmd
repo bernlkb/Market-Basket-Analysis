@@ -1,5 +1,5 @@
 ---
-title: "Analisis Bakul Pembeilan"
+title: "Analisis Bakul Pembelian"
 author: "Nurul Irdina Zahirah Binti Abd Rahim"
 output: html_document
 date: "2023-10-13"
@@ -7,8 +7,9 @@ date: "2023-10-13"
 ## 1. Pemuatan Data
 1.1 Memuat naik data yang diperoleh daripada laman web Kaggle ke dalam R dan namakan data tersebut sebagai "hunter"
 ```{r}
-load("/Users/zahirahrahim/Documents/FYP/FYP_code/Data/FYP_Zahirah.RData")
-hunter<- dat
+# Change of file location
+load("/Users/bernardlee/Documents/_Teaching_Class/_STQS3991/_2023/Zahirah/Dat/FYP_Zahirah.RData")
+hunter <- dat
 head(hunter)
 ```
 ## 2. Pemuatan "library" yang akan digunakan

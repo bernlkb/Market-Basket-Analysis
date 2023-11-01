@@ -37,27 +37,35 @@ library(ggplot2)
 
 * My Questions to you:
 
+  * [**Why buang transaksi yang hanya mempunyai satu item sahaja? Some explanation or description needed**]{style="color:red"}
   * [**How do you know those are the transactions with only one item purchased?**]{style="color:red"}
-  * [**You need to first somehow describe how you determine data with only one item purchased, before you can filter out**]{style="color:red"}
+  * [**You need to first somehow describe or show how you determine data with only one item purchased, before you can filter out**]{style="color:red"}
   * [**I would suggest you show a comparison of transactions with (i) one and (ii) more than one items purchased for clarity**]{style="color:red"}
 ```{r}
 # Don't understand what you wanted to do here
 # Comment required here - What you wanted to do here?
 hunter_c <- hunter[hunter$order_id %in% names(which(table(hunter$order_id) > 1)), -c(3,6,7,8,10)]
+
+# Show top six hunter data
 head(hunter)
+
+# Show top six hunter_c data
 head(hunter_c)
 ```
 
 #### 3.2 Pembuangan item yang sama di dalam setiap data transaksi [To remove duplicate items in a transaction]
 
-* [**First show what do you mean by duplication items**]{style="color:red"}
+* [**First show what do you mean by duplication items.**]{style="color:red"}
+* [**And when you said duplicated items, do you mean delete totally or retain one of the duplicated items?**]{style="color:red"}
+* [**If you removed them all, are you not missing quite a portion of the data?**]{style="color:red"}
 ```{r}
 # Comments required
 hunter_c <- hunter_c[!duplicated(hunter_c), ]
 ```
 
 #### 3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
-[** * How do you determine item yang tidak dapat dikenalpasti?**]{style="color:red"}
+
+* [**How do you determine item yang tidak dapat dikenalpasti?**]{style="color:red"}
 ```{r}
 # Comments required
 hunter_c <- hunter_c[!(hunter_c$product_name=='missing'),]
@@ -68,6 +76,7 @@ head(hunter_c)
 #### 4.1 Penyediaan data bagi Analisis Penerokaan Data
 ```{r}
 # Comments required
+# What is the purpose of this sapply step?
 sapply(hunter_c, function(x) length(unique(x)))
 hunter_EDA <- hunter_c %>% 
   group_by(order_id, order_dow, order_hour_of_day) %>% 

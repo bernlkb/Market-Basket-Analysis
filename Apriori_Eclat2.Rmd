@@ -41,6 +41,7 @@ library(ggplot2)
   * [**How do you know those are the transactions with only one item purchased?**]{style="color:red"}
   * [**You need to first somehow describe or show how you determine data with only one item purchased, before you can filter out**]{style="color:red"}
   * [**I would suggest you show a comparison of transactions with (i) one and (ii) more than one items purchased for clarity**]{style="color:red"}
+  * [**Why filter out column c(3, 6, 7, 8, 10) specifically?**]{style="color:red"}
 ```{r}
 # Don't understand what you wanted to do here
 # Comment required here - What you wanted to do here?
@@ -66,10 +67,17 @@ hunter_c <- hunter_c[!duplicated(hunter_c), ]
 #### 3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
 
 * [**How do you determine item yang tidak dapat dikenalpasti?**]{style="color:red"}
+* [**Show before and after removal of missing items**]{style="color:red"}
+* [**May be you can remind readers how many data left after each preprocessing?**]{style="color:red"}
+* [**Use the dim() function for example**]{style="color:red"}
 ```{r}
 # Comments required
 hunter_c <- hunter_c[!(hunter_c$product_name=='missing'),]
+
+# Comments required
 hunter_c[is.na(hunter_c)]<- 0
+
+# Comments required
 head(hunter_c)
 ```
 ## 4. Penyediaan Data
@@ -77,20 +85,27 @@ head(hunter_c)
 ```{r}
 # Comments required
 # What is the purpose of this sapply step?
+# Need to explain
 sapply(hunter_c, function(x) length(unique(x)))
+
+# Comments required - What is the purpose for this step
 hunter_EDA <- hunter_c %>% 
   group_by(order_id, order_dow, order_hour_of_day) %>% 
   summarise(item = paste(product_name, collapse = ","))
 
+# Comments required
 head(hunter_EDA)
 ```
 
 #### 4.2 Penyediaan data bagi analisis bakul pembelian
 ```{r}
-# Tukarkan data kepada bentuk transaksi [Convert data into transactions]
+# Tukarkan data kepada bentuk transaksi [Convert data into transactions] - I don't think this comment is relevant. As the conversion to transaction step is after the split() function.
 # Pecahkan data mengikut order ID dan nama produk [Split the data]
 hunter_gr <- split(hunter_c$product_name, hunter_c$order_id)
+
+# Comments required
 head(hunter_gr)
+
 # Tukarkan data kepada bentuk transaksi [Convert the data into transactions using the arules package]
 hunter_trans <- as(hunter_gr, "transactions")
 inspect(head(hunter_trans, 5))

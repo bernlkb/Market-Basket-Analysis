@@ -41,17 +41,23 @@ library(ggplot2)
   * [**You need to first somehow describe how you determine data with only one item purchased, before you can filter out**]{style="color:red"}
   * [**I would suggest you show a comparison of transactions with (i) one and (ii) more than one items purchased for clarity**]{style="color:red"}
 ```{r}
-# Comment required here
+# Don't understand what you wanted to do here
+# Comment required here - What you wanted to do here?
 hunter_c <- hunter[hunter$order_id %in% names(which(table(hunter$order_id) > 1)), -c(3,6,7,8,10)]
+head(hunter)
+head(hunter_c)
 ```
 
 #### 3.2 Pembuangan item yang sama di dalam setiap data transaksi [To remove duplicate items in a transaction]
+
+* [**First show what do you mean by duplication items**]{style="color:red"}
 ```{r}
-# Comments requried
+# Comments required
 hunter_c <- hunter_c[!duplicated(hunter_c), ]
 ```
 
 #### 3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
+[** * How do you determine item yang tidak dapat dikenalpasti?**]{style="color:red"}
 ```{r}
 # Comments required
 hunter_c <- hunter_c[!(hunter_c$product_name=='missing'),]
@@ -59,46 +65,52 @@ hunter_c[is.na(hunter_c)]<- 0
 head(hunter_c)
 ```
 ## 4. Penyediaan Data
-4.1 Penyediaan data bagi Analisis Penerokaan Data
+#### 4.1 Penyediaan data bagi Analisis Penerokaan Data
 ```{r}
+# Comments required
 sapply(hunter_c, function(x) length(unique(x)))
-hunter_EDA<- hunter_c %>% 
+hunter_EDA <- hunter_c %>% 
   group_by(order_id, order_dow, order_hour_of_day) %>% 
   summarise(item = paste(product_name, collapse = ","))
 
 head(hunter_EDA)
 ```
-4.2 Penyediaan data bagi analisis bakul pembelian
+
+#### 4.2 Penyediaan data bagi analisis bakul pembelian
 ```{r}
 # Tukarkan data kepada bentuk transaksi [Convert data into transactions]
-## Pecahkan data mengikut order ID dan nama produk [Split the data]
+# Pecahkan data mengikut order ID dan nama produk [Split the data]
 hunter_gr <- split(hunter_c$product_name, hunter_c$order_id)
 head(hunter_gr)
-## Tukarkan data kepada bentuk transaksi [Convert the data into transactions using the arules package]
+# Tukarkan data kepada bentuk transaksi [Convert the data into transactions using the arules package]
 hunter_trans <- as(hunter_gr, "transactions")
 inspect(head(hunter_trans, 5))
 ```
 
 ## 5. Analisis Penerokaan Data [Exploratory Data Analysis, EDA]
-5.1 Jumlah transaksi pelanggan mengikut hari [Total number of transactions per day]
+
+#### 5.1 Jumlah transaksi pelanggan mengikut hari [Total number of transactions per day]
 ```{r}
+# Comments required
 hunter_day<- table(hunter_EDA$order_dow)
 days <- paste(c("Isnin", "Selasa", "Rabu","Khamis", "Jumaat", "Sabtu", "Ahad"), "  | ", (round((hunter_day/190134)*100,1)), "%", sep="")
 pie(hunter_day, labels = days, main =" Jumlah transaksi pelanggan mengikut hari", col = rainbow(length(hunter_day)))
 ```
 
 ```{r}
+# Comments required
 barplot(hunter_day,
-main = "Jumlah transaksi pelanggan mengikut hari",
-xlab = "Hari",
-ylab = "Bilangan Transaksi",
-names.arg = c("Isnin", "Selasa", "Rabu","Khamis", "Jumaat", "Sabtu", "Ahad"),
-col = rainbow(length(hunter_day)),
-horiz = FALSE)
+        main = "Jumlah transaksi pelanggan mengikut hari",
+        xlab = "Hari",
+        ylab = "Bilangan Transaksi",
+        names.arg = c("Isnin", "Selasa", "Rabu","Khamis", "Jumaat", "Sabtu", "Ahad"),
+        col = rainbow(length(hunter_day)),
+        horiz = FALSE)
 ```
 
-5.2 Jumlah transaksi pelanggan mengikut masa [Total number of transactions per time]
+#### 5.2 Jumlah transaksi pelanggan mengikut masa [Total number of transactions per time]
 ```{r}
+# Comments required
 hunter_EDAt<- hunter_EDA[,c(1,3)]
 hunter_EDAt$Masa <- cut(hunter_EDAt$order_hour_of_day, breaks = c(-Inf,4,11,14,19,Inf), 
                   labels = c("Malam","Pagi","Tengahhari","Petang","Malam"))
@@ -108,7 +120,9 @@ time <- paste(c("Malam", "Pagi", "Tengahhari","Petang"), "  | ", (round((hunter_
 pie(hunter_time, labels=time, main ="Jumlah transaksi pelanggan mengikut masa", col = rainbow(length(hunter_time)))
 ```
 
+[** What you wanted to do here...Give some description**]{style="color:red"}
 ```{r}
+# Comments required
 barplot(table(hunter_EDAt$order_hour_of_day),
 main = "Jumlah transaksi pelanggan mengikut masa",
 xlab = "Masa",

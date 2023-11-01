@@ -1,19 +1,29 @@
 ---
 title: "Analisis Bakul Pembelian"
 author: "Nurul Irdina Zahirah Binti Abd Rahim"
-output: html_document
 date: "2023-10-13"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
 ---
 ## 1. Pemuatan Data
-1.1 Memuat naik data yang diperoleh daripada laman web Kaggle ke dalam R dan namakan data tersebut sebagai "hunter"
+1.1 Memuat naik data yang diperoleh daripada laman web Kaggle [**(Put down the Kaggle link here)**]{style="color:red"} ke dalam R dan namakan data tersebut sebagai "hunter"
+* For each line of code, put a [**# tag sign**]{style="color:red"} to explain what's the purpose of executing that particular code.
 ```{r}
-# Change of file location
-load("/Users/bernardlee/Documents/_Teaching_Class/_STQS3991/_2023/Zahirah/Dat/FYP_Zahirah.RData")
+# Change of file location by Bernard
+load("/Users/bernardlee/Documents/_Teaching_Class/_STQS3991/_2023/Zahirah/Library/FYP_Zahirah.RData")
+
+# Create a copy of the data into hunter variable
 hunter <- dat
+
+# looking at the top six data
 head(hunter)
 ```
+
 ## 2. Pemuatan "library" yang akan digunakan
 ```{r}
+# Load necessary library
 library(arules)
 library(arulesViz)
 library(tidyverse)
@@ -23,16 +33,27 @@ library(ggplot2)
 ```
 
 ## 3. Pembersihan data
-3.1 Pembuangan transaksi yang hanya mempunyai satu item sahaja [To delete transactions with only one item purchased]
+#### 3.1 Pembuangan transaksi yang hanya mempunyai satu item sahaja [To delete transactions with only one item purchased]
+
+* My Questions to you:
+
+  * [**How do you know those are the transactions with only one item purchased?**]{style="color:red"}
+  * [**You need to first somehow describe how you determine data with only one item purchased, before you can filter out**]{style="color:red"}
+  * [**I would suggest you show a comparison of transactions with (i) one and (ii) more than one items purchased for clarity**]{style="color:red"}
 ```{r}
+# Comment required here
 hunter_c <- hunter[hunter$order_id %in% names(which(table(hunter$order_id) > 1)), -c(3,6,7,8,10)]
 ```
-3.2 Pembuangan item yang sama di dalam setiap data transaksi [To remove duplicate items in a transaction]
+
+#### 3.2 Pembuangan item yang sama di dalam setiap data transaksi [To remove duplicate items in a transaction]
 ```{r}
+# Comments requried
 hunter_c <- hunter_c[!duplicated(hunter_c), ]
 ```
-3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
+
+#### 3.3 Pembuangan item yang tidak dapat dikenalpasti dalam setiap data transaksi [To remove missing items]
 ```{r}
+# Comments required
 hunter_c <- hunter_c[!(hunter_c$product_name=='missing'),]
 hunter_c[is.na(hunter_c)]<- 0
 head(hunter_c)
